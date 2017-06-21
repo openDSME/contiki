@@ -759,7 +759,7 @@ lwm2m_engine_select_writer(lwm2m_context_t *context, unsigned int accept)
       context->writer = &oma_tlv_writer;
       break;
     case LWM2M_TEXT_PLAIN:
-    case TEXT_PLAIN:
+    //case TEXT_PLAIN:
       context->writer = &lwm2m_plain_text_writer;
       break;
     case LWM2M_JSON:
@@ -790,7 +790,7 @@ lwm2m_engine_select_reader(lwm2m_context_t *context, unsigned int content_format
       context->reader = &oma_tlv_reader;
       break;
     case LWM2M_TEXT_PLAIN:
-    case TEXT_PLAIN:
+    //case TEXT_PLAIN:
       context->reader = &lwm2m_plain_text_reader;
       break;
     default:
