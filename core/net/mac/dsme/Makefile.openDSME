@@ -1,0 +1,45 @@
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeLayer
+CONTIKI_SOURCEFILES += DSMELayer.cc DSMEEventDispatcher.cc
+      
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeLayer/ackLayer
+CONTIKI_SOURCEFILES += AckLayer.cc 
+  
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeLayer/associationManager
+CONTIKI_SOURCEFILES += AssociationManager.cc
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeLayer/beaconManager
+CONTIKI_SOURCEFILES += BeaconManager.cc 
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeLayer/capLayer
+CONTIKI_SOURCEFILES += CAPLayer.cc
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeLayer/gtsManager
+CONTIKI_SOURCEFILES += ACTUpdater.cc GTSData.cc GTSManager.cc
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeLayer/messages
+CONTIKI_SOURCEFILES += GTSManagement.cc IEEE802154eMACHeader.cc
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeLayer/messageDispatcher
+CONTIKI_SOURCEFILES += MessageDispatcher.cc
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/mac_services/dataStructures
+CONTIKI_SOURCEFILES += BeaconBitmap.cc BitVectorIterator.cc DSMEAllocationCounterTable.cc \
+  DSMEBitVector.cc DSMEMessageElement.cc DSMESlotAllocationBitmap.cc DSMESuperframeSpecification.cc \
+  GTS.cc IEEE802154MacAddress.cc 
+  
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/mac_services/mcps_sap
+CONTIKI_SOURCEFILES += DATA.cc MCPS_SAP.cc PURGE.cc
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/mac_services/mlme_sap
+CONTIKI_SOURCEFILES += ASSOCIATE.cc DISASSOCIATE.cc DSME_GTS.cc \
+  MLME_SAP.cc POLL.cc RESET.cc SCAN.cc START.cc SYNC.cc
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/mac_services/pib
+CONTIKI_SOURCEFILES += MAC_PIB.cc PHY_PIB.cc PIBHelper.cc \
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeAdaptionLayer
+CONTIKI_SOURCEFILES += AssociationHelper.cc DSMEAdaptionLayer.cc GTSHelper.cc ScanHelper.cc
+
+vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeAdaptionLayer/scheduling
+CONTIKI_SOURCEFILES += PIDScheduling.cc

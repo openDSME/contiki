@@ -13,6 +13,9 @@
 [submodule "platform/stm32nucleo-spirit1/stm32cube-lib"]
 	path = platform/stm32nucleo-spirit1/stm32cube-lib
 	url = https://github.com/STclab/stm32nucleo-spirit1-lib
+[submodule "core/net/mac/dsme/openDSME"]
+	path = core/net/mac/dsme/openDSME
+	url = https://github.com/openDSME/openDSME.git
 
 [submodule "tools/sensniff"]
 	path = tools/sensniff

@@ -93,6 +93,7 @@ enum rf2xx_state
 static volatile enum rf2xx_state rf2xx_state;
 static volatile int rf2xx_on;
 static volatile int cca_pending;
+static volatile uint8_t rf2xx_last_lqi;
 
 /* Are we currently in poll mode? */
 static uint8_t volatile poll_mode = 0;
@@ -184,6 +185,10 @@ rf2xx_wr_hard_prepare(const void *payload, unsigned short payload_le, int async)
 	  reg |= RF2XX_TRX_CTRL_1_MASK__PA_EXT_EN;
 	  rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1, reg);
 	}
+
+	reg = rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1);
+	reg |= RF2XX_TRX_CTRL_1_MASK__IRQ_2_EXT_EN;
+	rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1, reg);
 
 	// Wait until PLL ON state
 	time = RTIMER_NOW() + RTIMER_SECOND / 1000;
@@ -520,6 +525,10 @@ get_value(radio_param_t param, radio_value_t *value)
   case RADIO_PARAM_CHANNEL:
     *value = get_channel();
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_LINK_QUALITY:
+    /* LQI of the last packet received */
+    *value = rf2xx_last_lqi;
+    return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
   }
@@ -750,10 +759,10 @@ static void reset(void)
     rf2xx_irq_configure(RF2XX_DEVICE, irq_handler, NULL);
 
     // Disable DIG2 pin
-    if (rf2xx_has_dig2(RF2XX_DEVICE))
+    /*if (rf2xx_has_dig2(RF2XX_DEVICE))
     {
         rf2xx_dig2_disable(RF2XX_DEVICE);
-    }
+    }*/
 
     // Reset the SLP_TR output
     rf2xx_slp_tr_clear(RF2XX_DEVICE);
@@ -901,7 +910,7 @@ static int read(uint8_t *buf, uint8_t buf_len)
     log_info("radio-rf2xx: Received packet of length: %u", len);
 
     // Check valid length (not zero and enough space to store it)
-    if (len > buf_len)
+    if (len+3 > buf_len) // +3 to also request FCS and LQI
     {
         log_warning("radio-rf2xx: Received packet is too big (%u)", len);
         // Error length, end transfer
@@ -910,7 +919,15 @@ static int read(uint8_t *buf, uint8_t buf_len)
     }
 
     // Read payload
-    rf2xx_fifo_read_remaining(RF2XX_DEVICE, buf, len);
+    rf2xx_fifo_read_remaining(RF2XX_DEVICE, buf, len+3); // +3 to also request FCS and LQI
+    rf2xx_last_lqi = buf[len+2];
+
+    if(!poll_mode) {
+        /* Not in poll mode: packetbuf should not be accessed in interrupt context.
+         * In poll mode, the last link quality can be obtained through
+         * RADIO_PARAM_LAST_LINK_QUALITY */
+        packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, rf2xx_last_lqi);
+    }
 
 #ifdef RF2XX_LEDS_ON
         leds_off(LEDS_GREEN);

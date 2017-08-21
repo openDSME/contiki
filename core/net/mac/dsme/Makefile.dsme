@@ -1,0 +1,29 @@
+CONTIKI_SOURCEFILES += dsme.cc DSMEMessage.cc DSMEMessageBuffer.cc \
+    DSMEPlatform.cc 
+    
+include $(CONTIKI)/core/net/mac/dsme/Makefile.openDSME
+
+#CUSTOM_RULE_C_TO_OBJECTDIR_O=yes
+#CUSTOM_RULE_C_TO_O=yes
+#CUSTOM_RULE_C_TO_CO=yes
+CUSTOM_RULE_LINK=yes
+
+#-fno-rtti 
+
+CFLAGS +=-fabi-version=0 -fno-exceptions -fno-use-cxa-atexit -fno-threadsafe-statics
+CFLAGS   += -std=c++11
+LDFLAGS  +=
+
+include $(CONTIKI)/Makefile.include
+
+vpath %.cc $(SOURCEDIRS)
+
+%.$(TARGET): %.co $(PROJECT_OBJECTFILES) $(PROJECT_LIBRARIES) contiki-$(TARGET).a
+	$(TRACE_LD)
+	$(Q)$(subst cc,++,$(CC)) -fno-use-cxa-atexit --specs=nano.specs $(subst -nodefaultlibs,,$(LDFLAGS)) $(TARGET_STARTFILES) ${filter-out %.a,$^} \
+	    ${filter %.a,$^} $(TARGET_LIBFILES) -o $@
+
+$(OBJECTDIR)/%.o: %.cc | $(OBJECTDIR)
+	$(TRACE_CC)
+	$(Q)$(CC) $(CFLAGS) $(OPENLAB_INCLUDE_PATH) -MMD -c $< -o $@
+	@$(FINALIZE_DEPENDENCY)

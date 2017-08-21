@@ -52,7 +52,7 @@ CFLAGS   += -DPLATFORM_OS=CONTIKI
 
 CFLAGS   += -Os
 CFLAGS   += -Wall
-CFLAGS   += -Wimplicit -Wpointer-arith
+CFLAGS   += -Wpointer-arith #-Wimplicit
 
 CFLAGS   += -DGCC_ARMCM3 -DENABLE_DEBUG=${DEBUG}
 CFLAGS   += -gdwarf-2 -fno-builtin -fsingle-precision-constant
@@ -80,10 +80,9 @@ CFLAGS   += -Wno-shadow
 CFLAGS   += -Wno-unused-but-set-variable
 CFLAGS   += -Wno-unused-variable
 CFLAGS   += -Wno-char-subscripts
-CFLAGS   += -Wno-implicit-function-declaration
+# CFLAGS   += -Wno-implicit-function-declaration
 CFLAGS   += -Wno-maybe-uninitialized
 CFLAGS   += -fno-strict-aliasing
-
 
 
 # escape characters conflicts with SLIP
@@ -210,7 +209,8 @@ OPENLAB_CONTIKI_WRAPPERS +=			\
 	openlab-port.c		\
 	rtimer-arch.c			\
 	leds-arch.c			\
-	platform-sensors.c
+	platform-sensors.c \
+	MacSymbolCounter.cc
 
 
 CONTIKI_SRC += 					\

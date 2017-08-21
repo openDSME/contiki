@@ -40,8 +40,12 @@
 
 #define CLOCK_CONF_SECOND 100
 
-typedef unsigned int   clock_time_t;
-typedef unsigned short rtimer_clock_t;
+//typedef unsigned int   clock_time_t;
+//typedef unsigned short rtimer_clock_t;
+
+typedef uint32_t clock_time_t;
+typedef uint32_t rtimer_clock_t;
+#define RTIMER_CLOCK_DIFF(a,b)     ((int64_t)((a)-(b)))
 
 /* ---------------------------------------- */
 /*
