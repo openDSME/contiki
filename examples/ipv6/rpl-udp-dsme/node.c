@@ -32,12 +32,7 @@
 
 #include "dev/serial-line.h"
 
-#ifndef PERIOD
-#define PERIOD 30
-#endif
-
-#define START_INTERVAL		(15 * CLOCK_SECOND)
-#define SEND_INTERVAL		(PERIOD * CLOCK_SECOND)
+#define SEND_INTERVAL		((PERIOD * CLOCK_SECOND)/1000)
 #define SEND_TIME		(random_rand() % (SEND_INTERVAL))
 #define MAX_PAYLOAD_LEN		30
 
@@ -96,8 +91,8 @@ PROCESS_THREAD(main_process, ev, data)
 
   uip_ip6addr(&server_ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0x00ff, 0xfe00, 1);
 
-  PRINTF("max_nbr:%d max_routes:%d\n",
-           NBR_TABLE_CONF_MAX_NEIGHBORS, UIP_CONF_MAX_ROUTES);
+  PRINTF("DSME_PAN_COORDINATOR:%x max_nbr:%d max_routes:%d\n",
+           DSME_PAN_COORDINATOR, NBR_TABLE_CONF_MAX_NEIGHBORS, UIP_CONF_MAX_ROUTES);
 
   if(IS_SERVER) {
     PRINTF("UDP server started\n");

@@ -67,16 +67,6 @@
 #undef MTARCH_CONF_STACKSIZE
 #define MTARCH_CONF_STACKSIZE 1024
 
-
-/*
- * ID of PAN coordinator node. For PAN_COORDINATOR = 1 pan coordinator node
- * has to be placed first in Cooja simulation.
- */
-#ifndef DSME_PAN_COORDINATOR
-//#define DSME_PAN_COORDINATOR 1
-#define DSME_PAN_COORDINATOR 0xb674
-#endif
-
 /* Needed for IoT-LAB M3 nodes */
 #undef RF2XX_SOFT_PREPARE
 #define RF2XX_SOFT_PREPARE 0
