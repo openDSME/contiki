@@ -93,6 +93,7 @@ enum rf2xx_state
 static volatile enum rf2xx_state rf2xx_state;
 static volatile int rf2xx_on;
 static volatile int cca_pending;
+static volatile int rf2xx_current_channel;
 
 /* Are we currently in poll mode? */
 static uint8_t volatile poll_mode = 0;
@@ -353,7 +354,7 @@ rf2xx_wr_channel_clear(void)
             //initiate a cca request
             platform_enter_critical();
             reg = RF2XX_PHY_CC_CCA_DEFAULT__CCA_MODE |
-                (RF2XX_CHANNEL & RF2XX_PHY_CC_CCA_MASK__CHANNEL) |
+                (rf2xx_current_channel & RF2XX_PHY_CC_CCA_MASK__CHANNEL) |
                 RF2XX_PHY_CC_CCA_MASK__CCA_REQUEST;
             rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__PHY_CC_CCA, reg);
             platform_exit_critical();
@@ -485,6 +486,7 @@ set_channel(uint8_t channel)
   uint8_t reg = RF2XX_PHY_CC_CCA_DEFAULT__CCA_MODE |
         (channel & RF2XX_PHY_CC_CCA_MASK__CHANNEL);
   platform_enter_critical();
+  rf2xx_current_channel = channel;
   rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__PHY_CC_CCA, reg);
   platform_exit_critical();
 }
