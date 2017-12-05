@@ -3,7 +3,6 @@
 
 extern "C" {
 #include "lib/assert.h"
-//#include "sys/node-id.h"
 #include "dev/radio.h"
 #include "net/netstack.h"
 #include "net/mac/mac.h"
@@ -19,40 +18,30 @@ extern "C" {
 #define palId_id() node_id
 #endif
 
-#if 1
 #define DSME_LOG(x) {std::stringstream s; s << x << LOG_ENDL; DSME_PRINTF(s.str().c_str());}
-#define DSME_CONSOLE(x) DSME_LOG(x) //{std::stringstream s; s << "Node " << palId_id() << ": " << x << LOG_ENDL; std::cout << s.str().c_str() << LOG_ENDL << std::flush;}
-#define DSME_LOG_ASSERT(x) DSME_LOG(x) //{std::stringstream s; s << "Node " << palId_id() << ": " << x << LOG_ENDL; std::cout << s.str().c_str() << LOG_ENDL << std::flush;}
+#define DSME_LOG_PURE(x) {std::stringstream s; s << x; DSME_PRINTF(s.str().c_str());}
 
-//#define LOG_INFO(x) DSME_LOG(x)
+//#if defined(DSME_ADAPTION_LAYER) || defined(DSME_ALLOCATION_COUNTER_TABLE) || defined(DSME_BEACON_MANAGER) || defined(DSME_ASSOCIATION_MANAGER)
+#if 0
+#define LOG_INFO(x) DSME_LOG(x)
+#define LOG_INFO_PURE(x) DSME_LOG_PURE(x)
+#else
 #define LOG_INFO(x)
-#define LOG_INFO_PURE(x)// {std::stringstream s; s << x; DSME_PRINTF(s.str().c_str());}
+#define LOG_INFO_PURE(x)
+#endif
 #define LOG_INFO_PREFIX
-#define LOG_ERROR(x) {DSME_CONSOLE(x);DSME_LOG(x);}
+
+#define LOG_ERROR(x) DSME_LOG(x)
 #define HEXOUT std::hex
 #define DECOUT std::dec
 #define LOG_ENDL std::endl
 
-#else
-#define LOG_INFO(x)
-#define DSME_CONSOLE(x)
-#define DSME_LOG_ASSERT(x)
-#define DSME_LOG(x)
-#define LOG_ERROR(x)
-#define LOG_INFO_PURE(x)
-#define LOG_INFO_PREFIX
-#define DECOUT
-#define HEXOUT
-#endif
-
-#define LOG_WARN(x) LOG_INFO(x)
-//#define LOG_DEBUG(x) LOG_INFO(x)
 #define LOG_DEBUG(x)
-#define LOG_DEBUG_PURE(x) LOG_INFO_PURE(x)
-#define LOG_DEBUG_PREFIX LOG_INFO_PREFIX
+#define LOG_DEBUG_PURE(x)
+#define LOG_DEBUG_PREFIX
 
-#define DSME_ASSERT(x) if(!(x)) {	DSME_LOG_ASSERT("ASSERT"); assert(x); while(1){}	}
-#define DSME_SIM_ASSERT(x) if(!(x)) {	DSME_LOG_ASSERT("SIM ASSERT"); assert(x);	}
+#define DSME_ASSERT(x) if(!(x)) { DSME_LOG("ASSERT"); assert(x); while(1){asm volatile("nop");}	}
+#define DSME_SIM_ASSERT(x) if(!(x)) { DSME_LOG("SIM ASSERT"); }
 
 #include "DSMEMessage.h"
 #include "dsme_settings.h"

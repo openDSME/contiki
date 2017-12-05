@@ -630,7 +630,7 @@ bool DSMEPlatform::sendNow() {
 		uint8_t status = NETSTACK_RADIO.transmit(currentTXLength);
 		tx_Success = (status == RADIO_TX_OK);
 		if(!tx_Success) {
-			DSME_CONSOLE("DSMEPlatform: tx status is " << (uint32_t) status);
+			DSME_LOG("DSMEPlatform: tx status is " << (uint32_t) status);
 		}
 		ctimer_set(&sendCallbackTimer, (clock_time_t) 0, sendDone, NULL);
 		return tx_Success;
