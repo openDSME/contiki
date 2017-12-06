@@ -1,6 +1,6 @@
 CONTIKI_SOURCEFILES += dsme.cc DSMEMessage.cc DSMEMessageBuffer.cc \
-    DSMEPlatform.cc 
-    
+    DSMEPlatform.cc
+
 include $(CONTIKI)/core/net/mac/dsme/Makefile.openDSME
 
 #CUSTOM_RULE_C_TO_OBJECTDIR_O=yes

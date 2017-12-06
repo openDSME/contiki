@@ -21,8 +21,7 @@ extern "C" {
 #define DSME_LOG(x) {std::stringstream s; s << x << LOG_ENDL; DSME_PRINTF(s.str().c_str());}
 #define DSME_LOG_PURE(x) {std::stringstream s; s << x; DSME_PRINTF(s.str().c_str());}
 
-//#if defined(DSME_ADAPTION_LAYER) || defined(DSME_ALLOCATION_COUNTER_TABLE) || defined(DSME_BEACON_MANAGER) || defined(DSME_ASSOCIATION_MANAGER)
-#if 0
+#if defined(DSME_ADAPTION_LAYER) || defined(DSME_ALLOCATION_COUNTER_TABLE) || defined(DSME_BEACON_MANAGER) || defined(DSME_ASSOCIATION_MANAGER)
 #define LOG_INFO(x) DSME_LOG(x)
 #define LOG_INFO_PURE(x) DSME_LOG_PURE(x)
 #else

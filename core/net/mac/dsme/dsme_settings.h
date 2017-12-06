@@ -76,7 +76,7 @@ constexpr uint8_t MIN_CSMA_SLOTS = 0; // 0 for CAP reduction
 constexpr uint8_t MAX_GTSLOTS = const_redefines::aNumSuperframeSlots - MIN_CSMA_SLOTS - 1;
 constexpr uint8_t MAX_CHANNELS = 16;
 constexpr uint8_t MIN_CHANNEL = 11;
-constexpr uint8_t MAC_DEFAULT_CHANNEL = 11;
+constexpr uint8_t MAC_DEFAULT_CHANNEL = 19;
 constexpr uint8_t MAX_NEIGHBORS = 25;
 
 constexpr uint16_t MAC_DEFAULT_NWK_ID = IEEE802154_CONF_PANID;

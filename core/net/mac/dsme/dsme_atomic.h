@@ -1,7 +1,7 @@
 #ifndef __DSME_ATOMIC_H__
 #define __DSME_ATOMIC_H__
 
-#include "dsme_settings.h"
+#include <stdint.h>
 
 #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
 // recursive locks necessary!
@@ -15,14 +15,15 @@ inline void dsme_atomicEnd() {
 //  atomic_end_pt(&blocker);
 }
 #elif MAKE_FOR_M3
-// recursive locks necessary!
-inline void dsme_atomicBegin() {
-	__asm volatile ("cpsid i" : : : "memory");
+
+extern "C" {
+void platform_enter_critical();
+void platform_exit_critical();
 }
 
-inline void dsme_atomicEnd() {
-	__asm volatile ("cpsie i" : : : "memory");
-}
+#define dsme_atomicBegin() platform_enter_critical()
+#define dsme_atomicEnd() platform_exit_critical()
+
 #endif
 
 #endif /* __DSME_ATOMIC_H__ */
