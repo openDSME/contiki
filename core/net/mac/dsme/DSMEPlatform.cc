@@ -593,10 +593,8 @@ bool DSMEPlatform::prepareSendingCopy(IDSMEMessage* msg, Delegate<void(bool)> tx
 bool DSMEPlatform::prepareSendingCopy(DSMEMessage* msg, Delegate<void(bool)> txEndCallback) {
 		printSequenceChartInfo(msg, true);
 		tx_Success = false;
-//		static uint8_t mac_tx_status;
-    if (msg == nullptr) {
-        return tx_Success;
-    }
+
+   DSME_ASSERT(msg != nullptr); 
 
     dsme_atomicBegin();
     {
@@ -622,6 +620,9 @@ bool DSMEPlatform::prepareSendingCopy(DSMEMessage* msg, Delegate<void(bool)> txE
     /* copy data */
     memcpy(buffer, msg->getPayload(), msg->getPayloadLength());
     tx_Success = (NETSTACK_RADIO.prepare(DSMEPlatform::bufferUp, currentTXLength) == 0);
+    if(!tx_Success) {
+        DSMEPlatform::state = STATE_READY;
+    }
     return tx_Success;
 }
 
