@@ -45,6 +45,10 @@ public:
         dsme_atomicBegin();
         {
             copy = message;
+            if(!occupied) {
+                dsme_atomicEnd();
+                return;
+            }
         }
         dsme_atomicEnd();
 

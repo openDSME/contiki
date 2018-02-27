@@ -135,11 +135,11 @@ void MacSymbolCounter::init(void (*compareMatch)()) {
     //TIM3->SR &= ~TIM_SR_CC3IF; // clear capture interrupt
     //TIM3->DIER |= TIM_DIER_CC3IE; // enable capture interrupt
 
-    *timer_get_SR(_timer) &= ~TIMER_SR__UIF; // clear overflow interrupt
+    *timer_get_SR(_timer) = ~TIMER_SR__UIF; // clear overflow interrupt
     *timer_get_DIER_bitband(_timer, TIMER_DIER__UIE_bit) = 1; // enable overflow interrupt
-    *timer_get_SR(_timer) &= ~(TIMER_SR__CC1IF << TIMER_CHANNEL_1); // clear compare match interrupt
+    *timer_get_SR(_timer) = ~(TIMER_SR__CC1IF << TIMER_CHANNEL_1); // clear compare match interrupt
     *timer_get_DIER_bitband(_timer, TIMER_DIER__CC1IE_bit + TIMER_CHANNEL_1) = 1; // enable compare match interrupt
-    *timer_get_SR(_timer) &= ~(TIMER_SR__CC1IF << TIMER_CHANNEL_3); // clear capture interrupt
+    *timer_get_SR(_timer) = ~(TIMER_SR__CC1IF << TIMER_CHANNEL_3); // clear capture interrupt
     *timer_get_DIER_bitband(_timer, TIMER_DIER__CC1IE_bit + TIMER_CHANNEL_3) = 1; // enable capture interrupt
 
     printf("SR 0x%x\n",*timer_get_SR(_timer));
@@ -161,7 +161,7 @@ void MacSymbolCounter::interrupt() {
 	//if(TIM3->SR & TIM_SR_UIF){
 	if(*timer_get_SR(_timer) & TIMER_SR__UIF){
 		//TIM3->SR = ~TIM_SR_UIF;
-        *timer_get_SR(_timer) &= ~TIMER_SR__UIF;
+        *timer_get_SR(_timer) = ~TIMER_SR__UIF;
         overflow = true;
         msw++;
 	}
@@ -169,7 +169,7 @@ void MacSymbolCounter::interrupt() {
     //if(TIM3->SR & TIM_SR_CC1IF) {
     if(*timer_get_SR(_timer) & (TIMER_SR__CC1IF << TIMER_CHANNEL_1)) {
 		//TIM3->SR = ~TIM_SR_CC1IF;
-        *timer_get_SR(_timer) &= ~(TIMER_SR__CC1IF << TIMER_CHANNEL_1);
+        *timer_get_SR(_timer) = ~(TIMER_SR__CC1IF << TIMER_CHANNEL_1);
 
         uint16_t compareMSW = msw;
 
@@ -189,16 +189,16 @@ void MacSymbolCounter::interrupt() {
     if(*timer_get_SR(_timer) & (TIMER_SR__CC1OF << TIMER_CHANNEL_3)) {
         // overcapture
         //TIM3->SR = ~TIM_SR_CC3OF;
-        *timer_get_SR(_timer) &= ~(TIMER_SR__CC1OF << TIMER_CHANNEL_3);
+        *timer_get_SR(_timer) = ~(TIMER_SR__CC1OF << TIMER_CHANNEL_3);
         //TIM3->SR = ~TIM_SR_CC3IF;
-        *timer_get_SR(_timer) &= ~(TIMER_SR__CC1IF << TIMER_CHANNEL_3);
+        *timer_get_SR(_timer) = ~(TIMER_SR__CC1IF << TIMER_CHANNEL_3);
 
         lastCapture = INVALID_CAPTURE;
     }
     //else if(TIM3->SR & TIM_SR_CC3IF) {
     else if(*timer_get_SR(_timer) & (TIMER_SR__CC1IF << TIMER_CHANNEL_3)) {
 		//TIM3->SR = ~TIM_SR_CC3IF;
-        *timer_get_SR(_timer) &= ~(TIMER_SR__CC1IF << TIMER_CHANNEL_3);
+        *timer_get_SR(_timer) = ~(TIMER_SR__CC1IF << TIMER_CHANNEL_3);
 
         //uint16_t captureLSW = TIM3->CCR3;
         uint16_t captureLSW = *timer_get_CCRx(_timer,TIMER_CHANNEL_3);

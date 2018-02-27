@@ -12,7 +12,6 @@
 extern "C" {
 #include "sys/pt.h"
 #include "limits.h"
-#include "sys/ctimer.h"
 #include "net/packetbuf.h"
 #include "net/mac/frame802154.h"
 }
@@ -36,14 +35,14 @@ Delegate<void(bool)> DSMEPlatform::txEndCallback;
 #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
 static struct rtimer rt;
 #endif
-static struct ctimer handleMessgeTaskCallbackTimer, sendCallbackTimer, CCACallbackTimer;
 static bool tx_Success;
 
-
-
-static void handlingMessage(void *ptr);
-static void sendDone(void *ptr);
-static void ccaResult_ready(void *ptr);
+PROCESS(messageHandleProcess, "messageHandleProcess");
+AUTOSTART_PROCESSES(&messageHandleProcess);
+PROCESS(ccaFinishedProcess, "ccaFinishedProcess");
+AUTOSTART_PROCESSES(&ccaFinishedProcess);
+PROCESS(sendDoneProcess, "sendDoneProcess");
+AUTOSTART_PROCESSES(&sendDoneProcess);
 
 /* all zero, this all gets handled by MAC-layer */
 mac_ackCfg_t DSMEPlatform::ackCfg { 0, 0 };
@@ -136,6 +135,10 @@ void DSMEPlatform::initialize() {
 
     this->dsmeAdaptionLayer.setIndicationCallback(DELEGATE(&DSMEPlatform::handleDataMessageFromMCPSWrapper, *this));
     this->dsmeAdaptionLayer.setConfirmCallback(DELEGATE(&DSMEPlatform::handleConfirmFromMCPSWrapper, *this));
+
+    process_start(&messageHandleProcess, nullptr);
+    process_start(&ccaFinishedProcess, nullptr);
+    process_start(&sendDoneProcess, nullptr);
 
     this->dsme.initialize(this);
 
@@ -256,10 +259,22 @@ void DSMEPlatform::handleReceivedMessageFromAckLayer(IDSMEMessage* message) {
 }
 
 void DSMEPlatform::handleReceivedMessageFromAckLayer(DSMEMessage* message) {
-		DSME_ASSERT(handleMessageTask.isOccupied() == false);
-		bool success = handleMessageTask.occupy(message, this->receiveFromAckLayerDelegate);
-		DSME_ASSERT(success); // assume that isMessageReceptionFromAckLayerPossible was called before in the same atomic block
-		ctimer_set(&handleMessgeTaskCallbackTimer, (clock_time_t) 0, handlingMessage, this);
+	DSME_ASSERT(handleMessageTask.isOccupied() == false);
+	bool success = handleMessageTask.occupy(message, this->receiveFromAckLayerDelegate);
+	DSME_ASSERT(success); // assume that isMessageReceptionFromAckLayerPossible was called before in the same atomic block
+        process_poll(&messageHandleProcess);
+}
+
+PROCESS_THREAD(messageHandleProcess, ev, data)
+{
+    PROCESS_BEGIN();
+
+    while(1) {
+        PROCESS_WAIT_EVENT();
+        dsme::DSMEPlatform::instance->invokeMessageTask();
+    }
+
+    PROCESS_END();
 }
 
 void DSMEPlatform::scheduleStartOfCFP() {
@@ -557,25 +572,42 @@ bool DSMEPlatform::setChannelNumber(uint8_t channel) {
     this->channel = channel;
     radio_result_t error = RADIO_RESULT_OK;
     error = NETSTACK_RADIO.set_value(RADIO_PARAM_CHANNEL, channel);
+    if(error != RADIO_RESULT_OK) {
+        LOG_ERROR(error);
+    }
     DSME_ASSERT(error == RADIO_RESULT_OK);
     bool success = (error == RADIO_RESULT_OK);
     return success;
 }
 
-// Test whether CCA can be performed, if so start ctimer and return whether cca could be performed
 bool DSMEPlatform::startCCA() {
-		bool radio_idle = false;
+	bool radio_idle = false;
 #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
-		radio_idle = true;
+	radio_idle = true;
 #else
-		//TODO: platform specific test whether radio can perform CCA
-		radio_idle = true;
+	//TODO: platform specific test whether radio can perform CCA
+	radio_idle = true;
 #endif
-		ctimer_set(&CCACallbackTimer, (clock_time_t) 0, ccaResult_ready, NULL);
+        process_poll(&ccaFinishedProcess);
 
-		return radio_idle;
+	return radio_idle;
 
 }
+
+PROCESS_THREAD(ccaFinishedProcess, ev, data)
+{
+    PROCESS_BEGIN();
+
+    while(1) {
+        PROCESS_WAIT_EVENT();
+		bool clear = false;
+		clear = (bool) NETSTACK_RADIO.channel_clear();
+        dsme::DSMEPlatform::instance->getDSME().dispatchCCAResult(clear);
+    }
+
+    PROCESS_END();
+}
+
 
 /**
  * Called from openDSME. Serializes the DSMEMessage and calls NETSTACK_RADIO to transmit the data. Sets up immediate
@@ -588,10 +620,8 @@ bool DSMEPlatform::prepareSendingCopy(IDSMEMessage* msg, Delegate<void(bool)> tx
 bool DSMEPlatform::prepareSendingCopy(DSMEMessage* msg, Delegate<void(bool)> txEndCallback) {
 		printSequenceChartInfo(msg, true);
 		tx_Success = false;
-//		static uint8_t mac_tx_status;
-    if (msg == nullptr) {
-        return tx_Success;
-    }
+
+   DSME_ASSERT(msg != nullptr); 
 
     dsme_atomicBegin();
     {
@@ -617,18 +647,34 @@ bool DSMEPlatform::prepareSendingCopy(DSMEMessage* msg, Delegate<void(bool)> txE
     /* copy data */
     memcpy(buffer, msg->getPayload(), msg->getPayloadLength());
     tx_Success = (NETSTACK_RADIO.prepare(DSMEPlatform::bufferUp, currentTXLength) == 0);
+    if(!tx_Success) {
+        DSMEPlatform::state = STATE_READY;
+    }
     return tx_Success;
 }
 
 bool DSMEPlatform::sendNow() {
-  	//DSME_PRINTF("DSMEPlatform: sending data %i\n",currentTXLength);// now to " << msg->getHeader().getDestAddr().getShortAddress() << " with seq: " << (uint32_t) msg->getHeader().getSequenceNumber() << "!");
-		uint8_t status = NETSTACK_RADIO.transmit(currentTXLength);
-		tx_Success = (status == RADIO_TX_OK);
-		if(!tx_Success) {
-			DSME_LOG("DSMEPlatform: tx status is " << (uint32_t) status);
-		}
-		ctimer_set(&sendCallbackTimer, (clock_time_t) 0, sendDone, NULL);
-		return tx_Success;
+	uint8_t status = NETSTACK_RADIO.transmit(currentTXLength);
+	tx_Success = (status == RADIO_TX_OK);
+	if(!tx_Success) {
+		LOG_ERROR("DSMEPlatform: tx status is " << (uint32_t) status);
+	}
+        process_poll(&sendDoneProcess);
+	return tx_Success;
+}
+
+PROCESS_THREAD(sendDoneProcess, ev, data)
+{
+    PROCESS_BEGIN();
+
+    while(1) {
+        PROCESS_WAIT_EVENT();
+        DSME_ASSERT(dsme::DSMEPlatform::state == dsme::DSMEPlatform::STATE_SEND);
+        dsme::DSMEPlatform::txEndCallback(tx_Success);
+        dsme::DSMEPlatform::state = dsme::DSMEPlatform::STATE_READY;
+    }
+
+    PROCESS_END();
 }
 
 void DSMEPlatform::turnTransceiverOn() {
@@ -726,24 +772,6 @@ void DSMEPlatform::convertDSMEMacAddressToLinkaddr(IEEE802154MacAddress *from, l
 		to->u8[5] = (uint8_t) from->a3();
 		to->u8[6] = (uint8_t) (from->a4() >> 8);
 		to->u8[7] = (uint8_t) from->a4();
-}
-
-static void handlingMessage(void *ptr) {
-	dsme::DSMEPlatform::instance->invokeMessageTask();
-}
-
-static void sendDone(void *ptr) {
-		DSME_ASSERT(dsme::DSMEPlatform::state == dsme::DSMEPlatform::STATE_SEND);
-		dsme::DSMEPlatform::txEndCallback(tx_Success);
-		dsme::DSMEPlatform::state = dsme::DSMEPlatform::STATE_READY;
-}
-
-static void ccaResult_ready(void *ptr) {
-		bool clear = false;
-		clear = (bool) NETSTACK_RADIO.channel_clear();
-
-    dsme::DSMEPlatform::instance->getDSME().dispatchCCAResult(clear);
-    return;
 }
 
 }
