@@ -13,10 +13,10 @@
 
 #if CONTIKI_TARGET_IOTLAB_M3
 #include "../../../../openlab/drivers/unique_id.h"
-#define IS_SERVER (DSME_PAN_COORDINATOR == platform_uid())
+#define IS_SERVER (PAN_COORDINATOR == platform_uid())
 #elif CONTIKI_TARGET_COOJA
 #include "node-id.h"
-#define IS_SERVER (DSME_PAN_COORDINATOR == node_id)
+#define IS_SERVER (PAN_COORDINATOR == node_id)
 #else
 #error "Node ID not specified"
 #endif
@@ -91,8 +91,8 @@ PROCESS_THREAD(main_process, ev, data)
 
   uip_ip6addr(&server_ipaddr, UIP_DS6_DEFAULT_PREFIX, 0, 0, 0, 0, 0x00ff, 0xfe00, 1);
 
-  PRINTF("DSME_PAN_COORDINATOR:%x max_nbr:%d max_routes:%d\n",
-           DSME_PAN_COORDINATOR, NBR_TABLE_CONF_MAX_NEIGHBORS, UIP_CONF_MAX_ROUTES);
+  PRINTF("PAN_COORDINATOR:%x max_nbr:%d max_routes:%d\n",
+           PAN_COORDINATOR, NBR_TABLE_CONF_MAX_NEIGHBORS, UIP_CONF_MAX_ROUTES);
 
   if(IS_SERVER) {
     PRINTF("UDP server started\n");

@@ -62,7 +62,7 @@ void DSMEMessage::prependFrom(DSMEMessageElement* me) {
 }
 
 void DSMEMessage::decapsulateTo(DSMEMessageElement* me) {
-    me->copyFrom(this);
+    this->copyTo(me);
     this->setPayloadLength(this->getPayloadLength()-me->getSerializationLength());
     memmove(this->getPayload(), this->getPayload()+me->getSerializationLength(), this->getPayloadLength());
 }

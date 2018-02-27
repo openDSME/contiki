@@ -27,9 +27,19 @@
 
 /* Netstack layers */
 #undef NETSTACK_CONF_MAC
-#define NETSTACK_CONF_MAC     dsmemac_driver
 #undef NETSTACK_CONF_RDC
+#ifdef DSME
+#define NETSTACK_CONF_MAC     dsmemac_driver
 #define NETSTACK_CONF_RDC     dsme_rdc_driver
+#else
+#ifdef CSMA
+#define NETSTACK_CONF_MAC	csma_driver
+#define NETSTACK_CONF_RDC     nullrdc_driver
+#else
+#error "MAC not defined!"
+#endif
+#endif
+
 #undef NETSTACK_CONF_FRAMER
 #define NETSTACK_CONF_FRAMER  framer_802154
 
@@ -72,5 +82,10 @@
 #define RF2XX_SOFT_PREPARE 0
 #undef RF2XX_WITH_TSCH
 #define RF2XX_WITH_TSCH 1
+#define RF2XX_TX_POWER  PHY_POWER_3dBm
+#define RF2XX_RX_RSSI_THRESHOLD  RF2XX_PHY_RX_THRESHOLD__m101dBm
+#define TSCH_CONF_JOIN_HOPPING_SEQUENCE TSCH_HOPPING_SEQUENCE_1_1
+#define RPL_CONF_DIO_INTERVAL_MIN 3
+#define RPL_CONF_DIO_INTERVAL_MAX 8
 
 #endif /* __PROJECT_CONF_H__ */

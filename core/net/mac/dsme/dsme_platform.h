@@ -40,7 +40,7 @@ extern "C" {
 #define LOG_DEBUG_PREFIX
 
 #define DSME_ASSERT(x) if(!(x)) { DSME_LOG("ASSERT"); assert(x); while(1){asm volatile("nop");}	}
-#define DSME_SIM_ASSERT(x) if(!(x)) { DSME_LOG("SIM ASSERT"); }
+#define DSME_SIM_ASSERT(x) if(!(x)) { DSME_LOG("SIM ASSERT" << __FILE__ << __LINE__); }
 
 #include "DSMEMessage.h"
 #include "dsme_settings.h"

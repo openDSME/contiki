@@ -114,7 +114,7 @@ void DSMEPlatform::initialize() {
     translateMacAddress(id, this->mac_pib.macExtendedAddress);
 
     this->mac_pib.macShortAddress = this->mac_pib.macExtendedAddress.getShortAddress();
-    this->mac_pib.macIsPANCoord = (DSME_PAN_COORDINATOR == id);
+    this->mac_pib.macIsPANCoord = (PAN_COORDINATOR == id);
     if(this->mac_pib.macIsPANCoord) {
 			DSME_PRINTF("This node is PAN coordinator\n");
 			this->mac_pib.macPANId = MAC_DEFAULT_NWK_ID;
@@ -134,8 +134,6 @@ void DSMEPlatform::initialize() {
 
     this->phy_pib.phyCurrentChannel = MAC_DEFAULT_CHANNEL;
 
-    this->dsmeAdaptionLayer.settings.allocationScheme = DSMEAdaptionLayerSettings::ALLOC_CONTIGUOUS_SLOT;
-
     this->dsmeAdaptionLayer.setIndicationCallback(DELEGATE(&DSMEPlatform::handleDataMessageFromMCPSWrapper, *this));
     this->dsmeAdaptionLayer.setConfirmCallback(DELEGATE(&DSMEPlatform::handleConfirmFromMCPSWrapper, *this));
 
@@ -148,7 +146,7 @@ void DSMEPlatform::initialize() {
     channelList_t scanChannels;
     scanChannels.add(MAC_DEFAULT_CHANNEL);
     scheduling = new PIDScheduling(this->dsmeAdaptionLayer);
-    this->dsmeAdaptionLayer.initialize(scanChannels,scheduling);
+    this->dsmeAdaptionLayer.initialize(scanChannels,DSME_SCAN_DURATION,scheduling);
     this->initialized = true;
 }
 
@@ -281,10 +279,6 @@ mac_result_t DSMEPlatform::getMCPSTtransmitStatus(){
 		return this->MCPS_transmit_status;
 }
 
-void DSMEPlatform::bla() {
-	DSME_PRINTF("bla\n");
-}
-
 /**
  * Is called if a package from upper layer reaches the DSME MAC layer. Translates the IP-addresses into DSME addresses,
  * parses information from the packetbuffer and copies the payload into an DSMEMessage. DSMEMessage gets further processed
@@ -382,6 +376,7 @@ std::string DSMEPlatform::printDSMEManagement(uint8_t management, DSMESABSpecifi
 
     return ss.str();
 #endif
+    return "";
 }
 
 //TODO
@@ -641,7 +636,7 @@ void DSMEPlatform::turnTransceiverOn() {
 }
 
 void DSMEPlatform::turnTransceiverOff() {
-		// TODO NETSTACK_RADIO.off();
+		NETSTACK_RADIO.off();
 }
 
 void DSMEPlatform::abortPreparedTransmission() {

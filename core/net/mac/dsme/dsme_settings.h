@@ -100,6 +100,7 @@ constexpr uint16_t MSG_POOL_SIZE = CAP_QUEUE_SIZE + TOTAL_GTS_QUEUE_SIZE + 2 * U
 constexpr uint16_t DSME_BROADCAST_PAN_ID = 0xffff;
 
 constexpr uint8_t ADDITIONAL_ACK_WAIT_DURATION = 63;
+constexpr uint8_t DSME_SCAN_DURATION = 6;
 }
 
 #endif
