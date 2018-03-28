@@ -659,13 +659,14 @@ bool DSMEPlatform::prepareSendingCopy(DSMEMessage* msg, Delegate<void(bool)> txE
 }
 
 bool DSMEPlatform::sendNow() {
-	uint8_t status = NETSTACK_RADIO.transmit(currentTXLength);
-	tx_Success = (status == RADIO_TX_OK);
-	if(!tx_Success) {
-		LOG_ERROR("DSMEPlatform: tx status is " << (uint32_t) status);
-	}
-        process_poll(&sendDoneProcess);
-	return tx_Success;
+    uint8_t status = NETSTACK_RADIO.transmit(currentTXLength);
+    tx_Success = (status == RADIO_TX_OK);
+    if(!tx_Success) {
+        LOG_ERROR("DSMEPlatform: tx status is " << (uint32_t) status);
+    }
+    DSME_ASSERT(dsme::DSMEPlatform::state == dsme::DSMEPlatform::STATE_SEND);
+    process_poll(&sendDoneProcess);
+    return tx_Success;
 }
 
 PROCESS_THREAD(sendDoneProcess, ev, data)
@@ -745,8 +746,9 @@ void DSMEPlatform::requestPending() {
     NETSTACK_RADIO.get_value(RADIO_PARAM_LAST_LINK_QUALITY, &msg->messageLQI);
 
     const uint8_t *buffer = DSMEPlatform::bufferDown;
-    packetbuf_copyto((void *)buffer);
     uint16_t len = packetbuf_totlen();
+    DSME_ASSERT(len < DSME_PACKET_MAX_LEN);
+    packetbuf_copyto((void *)buffer);
 
 
     /* deserialize header */
