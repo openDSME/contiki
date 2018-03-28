@@ -51,12 +51,12 @@
 #define DEBUG DEBUG_FULL
 #include "net/ip/uip-debug.h"
 
-#ifndef PERIOD
-#define PERIOD 60
-#endif
+//#ifndef PERIOD
+//#define PERIOD 60
+//#endif
 
 #define START_INTERVAL		(15 * CLOCK_SECOND)
-#define SEND_INTERVAL		(PERIOD * CLOCK_SECOND)
+#define SEND_INTERVAL		((PERIOD * CLOCK_SECOND)/1000)
 #define SEND_TIME		(random_rand() % (SEND_INTERVAL))
 #define MAX_PAYLOAD_LEN		30
 

@@ -26,7 +26,7 @@ CONTIKI_SOURCEFILES += MessageDispatcher.cc
 vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/mac_services/dataStructures
 CONTIKI_SOURCEFILES += BeaconBitmap.cc BitVectorIterator.cc DSMEAllocationCounterTable.cc \
   DSMEBitVector.cc DSMEMessageElement.cc DSMESlotAllocationBitmap.cc DSMESuperframeSpecification.cc \
-  GTS.cc IEEE802154MacAddress.cc 
+  GTS.cc IEEE802154MacAddress.cc ChannelHoppingSpecification.cc
   
 vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/mac_services/mcps_sap
 CONTIKI_SOURCEFILES += DATA.cc MCPS_SAP.cc PURGE.cc
@@ -39,7 +39,7 @@ vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/mac_services/pib
 CONTIKI_SOURCEFILES += MAC_PIB.cc PHY_PIB.cc PIBHelper.cc \
 
 vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeAdaptionLayer
-CONTIKI_SOURCEFILES += AssociationHelper.cc DSMEAdaptionLayer.cc GTSHelper.cc ScanHelper.cc
+CONTIKI_SOURCEFILES += AssociationHelper.cc DSMEAdaptionLayer.cc GTSHelper.cc ScanHelper.cc MessageHelper.cc
 
 vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeAdaptionLayer/scheduling
 CONTIKI_SOURCEFILES += PIDScheduling.cc

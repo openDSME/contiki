@@ -83,8 +83,8 @@ public:
         return startOfFrameDelimiterSymbolCounter;
     }
 
-    uint32_t getReceptionSymbolCounter() override {
-        return startOfFrameDelimiterSymbolCounter + 2 * (this->getHeader().getSerializationLength() + getPayloadLength()) + 2; // 2 Symbols for PHY header
+    void setStartOfFrameDelimiterSymbolCounter(uint32_t symbolCounter) override {
+        startOfFrameDelimiterSymbolCounter = symbolCounter;
     }
 
     uint16_t getTotalSymbols() {

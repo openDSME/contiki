@@ -113,27 +113,28 @@ void DSMEPlatform::initialize() {
     translateMacAddress(id, this->mac_pib.macExtendedAddress);
 
     this->mac_pib.macShortAddress = this->mac_pib.macExtendedAddress.getShortAddress();
-    this->mac_pib.macIsPANCoord = (DSME_PAN_COORDINATOR == id);
+    this->mac_pib.macIsPANCoord = (PAN_COORDINATOR == id);
     if(this->mac_pib.macIsPANCoord) {
-			DSME_PRINTF("This node is PAN coordinator\n");
-			this->mac_pib.macPANId = MAC_DEFAULT_NWK_ID;
-		}
+      DSME_PRINTF("This node is PAN coordinator\n");
+      this->mac_pib.macPANId = MAC_DEFAULT_NWK_ID;
+    }
+
+    this->mac_pib.macCapReduction = DSME_CAP_REDUCTION;
+
     this->mac_pib.macAssociatedPANCoord = this->mac_pib.macIsPANCoord;
-    this->mac_pib.macBeaconOrder = 6;
     this->mac_pib.macSuperframeOrder = 3;
     this->mac_pib.macMultiSuperframeOrder = 5;
+    this->mac_pib.macBeaconOrder = 6;
 
-    this->mac_pib.macMinBE = 3;
-    this->mac_pib.macMaxBE = 8;
+    this->mac_pib.macMinBE = 5;
+    this->mac_pib.macMaxBE = 7;
     this->mac_pib.macMaxCSMABackoffs = 5;
     this->mac_pib.macMaxFrameRetries = 3;
 
-    this->mac_pib.macDSMEGTSExpirationTime = 7;
-    this->mac_pib.macResponseWaitTime = 16;
+    this->mac_pib.macDSMEGTSExpirationTime = 50;
+    this->mac_pib.macResponseWaitTime = 244;
 
     this->phy_pib.phyCurrentChannel = MAC_DEFAULT_CHANNEL;
-
-    this->dsmeAdaptionLayer.settings.allocationScheme = DSMEAdaptionLayerSettings::ALLOC_CONTIGUOUS_SLOT;
 
     this->dsmeAdaptionLayer.setIndicationCallback(DELEGATE(&DSMEPlatform::handleDataMessageFromMCPSWrapper, *this));
     this->dsmeAdaptionLayer.setConfirmCallback(DELEGATE(&DSMEPlatform::handleConfirmFromMCPSWrapper, *this));
@@ -151,7 +152,7 @@ void DSMEPlatform::initialize() {
     channelList_t scanChannels;
     scanChannels.add(MAC_DEFAULT_CHANNEL);
     scheduling = new PIDScheduling(this->dsmeAdaptionLayer);
-    this->dsmeAdaptionLayer.initialize(scanChannels,scheduling);
+    this->dsmeAdaptionLayer.initialize(scanChannels,DSME_SCAN_DURATION,scheduling);
     this->initialized = true;
 }
 
@@ -218,23 +219,23 @@ void DSMEPlatform::handleConfirmFromMCPS(DSMEMessage* msg, DataStatus::Data_Stat
 						break;
 				case DataStatus::INVALID_GTS:
 						status = MAC_TX_ERR;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: GTS was invalid\n");
+						LOG_ERROR("GTS invalid");
 						break;
 				case DataStatus::NO_ACK:
 						status = MAC_TX_NOACK;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: No ACK received\n");
+						LOG_ERROR("No ACK");
 						break;
 				case DataStatus::TRANSACTION_OVERFLOW:
 						status = MAC_TX_ERR;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: Transaction overflow\n");
+						LOG_ERROR("Overflow");
 						break;
 				case DataStatus::TRANSACTION_EXPIRED:
 						status = MAC_TX_ERR;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: Transaction expired\n");
+						LOG_ERROR("Expired");
 						break;
 				case DataStatus::CHANNEL_ACCESS_FAILURE:
 						status = MAC_TX_ERR_FATAL;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: Channel access failure\n");
+						LOG_ERROR("Access failure");
 						break;
 				default:
 						DSME_ASSERT(false);
@@ -294,10 +295,6 @@ bool DSMEPlatform::isAssociated() {
 
 mac_result_t DSMEPlatform::getMCPSTtransmitStatus(){
 		return this->MCPS_transmit_status;
-}
-
-void DSMEPlatform::bla() {
-	DSME_PRINTF("bla\n");
 }
 
 /**
@@ -397,6 +394,7 @@ std::string DSMEPlatform::printDSMEManagement(uint8_t management, DSMESABSpecifi
 
     return ss.str();
 #endif
+    return "";
 }
 
 //TODO
@@ -585,6 +583,17 @@ bool DSMEPlatform::setChannelNumber(uint8_t channel) {
     return success;
 }
 
+uint8_t DSMEPlatform::getChannelNumber() {
+    int channel;
+    radio_result_t error = RADIO_RESULT_OK;
+    error = NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &channel);
+    if(error != RADIO_RESULT_OK) {
+        LOG_ERROR(error);
+    }
+    DSME_ASSERT(error == RADIO_RESULT_OK);
+    return channel;
+}
+
 bool DSMEPlatform::startCCA() {
 	bool radio_idle = false;
 #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
@@ -688,7 +697,7 @@ void DSMEPlatform::turnTransceiverOn() {
 }
 
 void DSMEPlatform::turnTransceiverOff() {
-		// TODO NETSTACK_RADIO.off();
+		NETSTACK_RADIO.off();
 }
 
 void DSMEPlatform::abortPreparedTransmission() {
@@ -728,6 +737,11 @@ void DSMEPlatform::requestPending() {
 #else
     uint32_t sfdTimestamp = MacSymbolCounter::getInstance().getCapture();
     if(sfdTimestamp == MacSymbolCounter::INVALID_CAPTURE) {
+	LOG_ERROR("Invalid capture");
+        return;
+    }
+    if(sfdTimestamp == MacSymbolCounter::NO_CAPTURE) {
+	LOG_ERROR("No capture");
         return;
     }
     sfdTimestamp -= 2; // -2 since the AT86RF231 captures at the end of the PHR (+6us) instead at the end of the SFD as the ATmega256RFR2

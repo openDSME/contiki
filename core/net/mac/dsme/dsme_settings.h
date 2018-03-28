@@ -61,7 +61,7 @@ extern "C" {
 //#define LOG_ID_FROM_LINKADDR(addr) ((addr) ? (addr)->u8[LINKADDR_SIZE - 1] : 0)
 #define DSME_PACKET_MAX_LEN MIN(127,PACKETBUF_SIZE)
 
-
+#define STATISTICS_BEACONS
 
 namespace dsme {
 
@@ -100,6 +100,7 @@ constexpr uint16_t MSG_POOL_SIZE = CAP_QUEUE_SIZE + TOTAL_GTS_QUEUE_SIZE + 2 * U
 constexpr uint16_t DSME_BROADCAST_PAN_ID = 0xffff;
 
 constexpr uint8_t ADDITIONAL_ACK_WAIT_DURATION = 63;
+constexpr uint8_t DSME_SCAN_DURATION = 6;
 }
 
 #endif
