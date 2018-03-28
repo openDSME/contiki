@@ -122,17 +122,17 @@ void DSMEPlatform::initialize() {
     this->mac_pib.macCapReduction = DSME_CAP_REDUCTION;
 
     this->mac_pib.macAssociatedPANCoord = this->mac_pib.macIsPANCoord;
-    this->mac_pib.macBeaconOrder = 6;
     this->mac_pib.macSuperframeOrder = 3;
     this->mac_pib.macMultiSuperframeOrder = 5;
+    this->mac_pib.macBeaconOrder = 6;
 
-    this->mac_pib.macMinBE = 3;
-    this->mac_pib.macMaxBE = 8;
+    this->mac_pib.macMinBE = 5;
+    this->mac_pib.macMaxBE = 7;
     this->mac_pib.macMaxCSMABackoffs = 5;
     this->mac_pib.macMaxFrameRetries = 3;
 
-    this->mac_pib.macDSMEGTSExpirationTime = 7;
-    this->mac_pib.macResponseWaitTime = 16;
+    this->mac_pib.macDSMEGTSExpirationTime = 50;
+    this->mac_pib.macResponseWaitTime = 244;
 
     this->phy_pib.phyCurrentChannel = MAC_DEFAULT_CHANNEL;
 
@@ -219,23 +219,23 @@ void DSMEPlatform::handleConfirmFromMCPS(DSMEMessage* msg, DataStatus::Data_Stat
 						break;
 				case DataStatus::INVALID_GTS:
 						status = MAC_TX_ERR;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: GTS was invalid\n");
+						LOG_ERROR("GTS invalid");
 						break;
 				case DataStatus::NO_ACK:
 						status = MAC_TX_NOACK;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: No ACK received\n");
+						LOG_ERROR("No ACK");
 						break;
 				case DataStatus::TRANSACTION_OVERFLOW:
 						status = MAC_TX_ERR;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: Transaction overflow\n");
+						LOG_ERROR("Overflow");
 						break;
 				case DataStatus::TRANSACTION_EXPIRED:
 						status = MAC_TX_ERR;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: Transaction expired\n");
+						LOG_ERROR("Expired");
 						break;
 				case DataStatus::CHANNEL_ACCESS_FAILURE:
 						status = MAC_TX_ERR_FATAL;
-						LOG_ERROR("!DSMEPlatform_handleConfirmFromMCPS: Channel access failure\n");
+						LOG_ERROR("Access failure");
 						break;
 				default:
 						DSME_ASSERT(false);
