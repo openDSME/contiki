@@ -583,6 +583,17 @@ bool DSMEPlatform::setChannelNumber(uint8_t channel) {
     return success;
 }
 
+uint8_t DSMEPlatform::getChannelNumber() {
+    int channel;
+    radio_result_t error = RADIO_RESULT_OK;
+    error = NETSTACK_RADIO.get_value(RADIO_PARAM_CHANNEL, &channel);
+    if(error != RADIO_RESULT_OK) {
+        LOG_ERROR(error);
+    }
+    DSME_ASSERT(error == RADIO_RESULT_OK);
+    return channel;
+}
+
 bool DSMEPlatform::startCCA() {
 	bool radio_idle = false;
 #if CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64
