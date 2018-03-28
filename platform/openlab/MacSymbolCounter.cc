@@ -52,7 +52,7 @@ MacSymbolCounter& MacSymbolCounter::getInstance() {
 
 void MacSymbolCounter::init(void (*compareMatch)()) {
     this->compareMatch = compareMatch;
-    lastCapture = 0;
+    lastCapture = NO_CAPTURE;
 
 	//Disable interrupt during setup
     //TIM3->DIER &= ~TIM_DIER_UIE;
@@ -122,6 +122,8 @@ void MacSymbolCounter::init(void (*compareMatch)()) {
     //TIM3->CCER |= TIM_CCER_CC3E; // enable capture
 
     *timer_get_CCER(_timer) &= ~(TIMER_CCER__CC1P << (2*4)); // rising edge
+    *timer_get_CCER(_timer) &= ~(TIMER_CCER__CC1NP << (2*4)); // rising edge
+
     *timer_get_CCER(_timer) |= TIMER_CCER__CC1E << (2*4); // enable capture
 
     printf("CCER 0x%x\n",*timer_get_CCER(_timer));

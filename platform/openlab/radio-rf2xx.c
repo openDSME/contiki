@@ -173,6 +173,7 @@ rf2xx_wr_hard_prepare(const void *payload, unsigned short payload_le, int async)
 	}
 
 	// Read IRQ to clear it
+	platform_enter_critical();
 	rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__IRQ_STATUS);
 
 	// If radio has external PA, enable DIG3/4
@@ -190,12 +191,15 @@ rf2xx_wr_hard_prepare(const void *payload, unsigned short payload_le, int async)
 	reg = rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1);
 	reg |= RF2XX_TRX_CTRL_1_MASK__IRQ_2_EXT_EN;
 	rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1, reg);
+	platform_exit_critical();
 
 	// Wait until PLL ON state
 	time = RTIMER_NOW() + RTIMER_SECOND / 1000;
 	do
 	{
+	  platform_enter_critical();
 	  reg = rf2xx_get_status(RF2XX_DEVICE);
+	  platform_exit_critical();
 
 	  // Check for block
 	  if (RTIMER_CLOCK_LT(time, RTIMER_NOW()))
@@ -207,6 +211,7 @@ rf2xx_wr_hard_prepare(const void *payload, unsigned short payload_le, int async)
 	} while (reg != RF2XX_TRX_STATUS__PLL_ON);
 
 	// Copy the packet to the radio FIFO
+	platform_enter_critical();
 	rf2xx_fifo_write_first(RF2XX_DEVICE, tx_len + 2);
 	if(async) {
 	  rf2xx_fifo_write_remaining_async(RF2XX_DEVICE, payload,
@@ -215,6 +220,7 @@ rf2xx_wr_hard_prepare(const void *payload, unsigned short payload_le, int async)
 	  rf2xx_fifo_write_remaining(RF2XX_DEVICE, payload,
 	      tx_len);
 	}
+	platform_exit_critical();
 	return 0;
 }
 
@@ -274,10 +280,12 @@ rf2xx_wr_transmit(unsigned short transmit_len)
     }
 #endif
 
+    platform_enter_critical();
     // Enable IRQ interrupt
     rf2xx_irq_enable(RF2XX_DEVICE);
     // Start TX
     rf2xx_slp_tr_set(RF2XX_DEVICE);
+    platform_exit_critical();
 
     if(!RF2XX_WITH_TSCH) {
       // Wait until the end of the packet
@@ -285,8 +293,17 @@ rf2xx_wr_transmit(unsigned short transmit_len)
       ret = (rf2xx_state == RF_TX_DONE) ? RADIO_TX_OK : RADIO_TX_ERR;
     } else {
       // Wait until the transmission starts and ends
-      while(!(rf2xx_get_status(RF2XX_DEVICE) == RF2XX_TRX_STATUS__BUSY_TX));
-      while(!((rf2xx_get_status(RF2XX_DEVICE) != RF2XX_TRX_STATUS__BUSY_TX) || (rf2xx_state != RF_TX)));
+      uint8_t pending;
+      do {
+        platform_enter_critical();
+        pending = !(rf2xx_get_status(RF2XX_DEVICE) == RF2XX_TRX_STATUS__BUSY_TX);
+        platform_exit_critical();
+      } while(pending);
+      do {
+        platform_enter_critical();
+        pending = !((rf2xx_get_status(RF2XX_DEVICE) != RF2XX_TRX_STATUS__BUSY_TX) || (rf2xx_state != RF_TX));
+        platform_exit_critical();
+      } while(pending);
       ret = RADIO_TX_OK;
     }
 
@@ -400,7 +417,10 @@ rf2xx_wr_receiving_packet(void)
   if(!RF2XX_WITH_TSCH) {
     return (rf2xx_state == RF_RX) ? 1 : 0;
   } else {
-    return (rf2xx_state == RF_RX) || rf2xx_get_status(RF2XX_DEVICE) == RF2XX_TRX_STATUS__BUSY_RX;
+    platform_enter_critical();
+    int result = (rf2xx_state == RF_RX) || rf2xx_get_status(RF2XX_DEVICE) == RF2XX_TRX_STATUS__BUSY_RX;
+    platform_exit_critical();
+    return result;
   }
 }
 
@@ -413,9 +433,11 @@ rf2xx_wr_pending_packet(void)
   if(!RF2XX_WITH_TSCH) {
     return (rf2xx_state == RF_RX_DONE) ? 1 : 0;
   } else {
+    platform_enter_critical();
     if(rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__IRQ_STATUS) & RF2XX_IRQ_STATUS_MASK__TRX_END) {
       rf2xx_state = RF_RX_DONE;
     }
+    platform_exit_critical();
     return rf2xx_state == RF_RX_DONE;
   }
 }
@@ -753,6 +775,7 @@ static void reset(void)
     uint8_t reg;
     int rf_tx_power = convert_power(RF2XX_TX_POWER);
 
+    platform_enter_critical();
     // Stop any Asynchronous access
     rf2xx_fifo_access_cancel(RF2XX_DEVICE);
 
@@ -811,6 +834,7 @@ static void reset(void)
     reg &= 0xF0;
     reg |= (0x0F & RF2XX_RX_RSSI_THRESHOLD);
     rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__RX_SYN, reg);
+    platform_exit_critical();
 }
 
 
@@ -818,6 +842,7 @@ static void reset(void)
 
 static void idle(void)
 {
+    platform_enter_critical();
     // Disable the interrupts
     rf2xx_irq_disable(RF2XX_DEVICE);
 
@@ -841,6 +866,7 @@ static void idle(void)
         reg &= ~RF2XX_TRX_CTRL_1_MASK__PA_EXT_EN;
         rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1, reg);
     }
+    platform_exit_critical();
 }
 
 /*---------------------------------------------------------------------------*/
@@ -849,6 +875,7 @@ static void listen(void)
 {
     uint8_t reg;
 
+    platform_enter_critical();
     // Read IRQ to clear it
     rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__IRQ_STATUS);
 
@@ -868,7 +895,6 @@ static void listen(void)
     rf2xx_irq_enable(RF2XX_DEVICE);
 
     // Start RX
-    platform_enter_critical();
     rf2xx_state = RF_LISTEN;
     rf2xx_set_state(RF2XX_DEVICE, RF2XX_TRX_STATE__RX_ON);
     platform_exit_critical();
@@ -896,18 +922,22 @@ static int read(uint8_t *buf, uint8_t buf_len)
 {
     uint8_t len;
     // Check the CRC is good
+    platform_enter_critical();
     if (!(rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__PHY_RSSI)
             & RF2XX_PHY_RSSI_MASK__RX_CRC_VALID))
     {
+        platform_exit_critical();
         log_warning("radio-rf2xx: Received packet with bad crc");
         return 0;
     }
+    platform_exit_critical();
 
 #ifdef RF2XX_LEDS_ON
         leds_on(LEDS_GREEN);
 #endif
 
     // Get payload length
+    platform_enter_critical();
     len = rf2xx_fifo_read_first(RF2XX_DEVICE) - 2;
     log_info("radio-rf2xx: Received packet of length: %u", len);
 
@@ -923,6 +953,7 @@ static int read(uint8_t *buf, uint8_t buf_len)
     // Read payload
     rf2xx_fifo_read_remaining(RF2XX_DEVICE, buf, len+3); // +3 to also request FCS and LQI
     rf2xx_last_lqi = buf[len+2];
+    platform_exit_critical();
 
     if(!poll_mode) {
         /* Not in poll mode: packetbuf should not be accessed in interrupt context.

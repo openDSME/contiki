@@ -722,6 +722,11 @@ void DSMEPlatform::requestPending() {
 #else
     uint32_t sfdTimestamp = MacSymbolCounter::getInstance().getCapture();
     if(sfdTimestamp == MacSymbolCounter::INVALID_CAPTURE) {
+	LOG_ERROR("Invalid capture");
+        return;
+    }
+    if(sfdTimestamp == MacSymbolCounter::NO_CAPTURE) {
+	LOG_ERROR("No capture");
         return;
     }
     sfdTimestamp -= 2; // -2 since the AT86RF231 captures at the end of the PHR (+6us) instead at the end of the SFD as the ATmega256RFR2
