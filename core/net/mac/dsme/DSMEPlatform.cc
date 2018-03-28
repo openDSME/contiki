@@ -115,9 +115,12 @@ void DSMEPlatform::initialize() {
     this->mac_pib.macShortAddress = this->mac_pib.macExtendedAddress.getShortAddress();
     this->mac_pib.macIsPANCoord = (PAN_COORDINATOR == id);
     if(this->mac_pib.macIsPANCoord) {
-			DSME_PRINTF("This node is PAN coordinator\n");
-			this->mac_pib.macPANId = MAC_DEFAULT_NWK_ID;
-		}
+      DSME_PRINTF("This node is PAN coordinator\n");
+      this->mac_pib.macPANId = MAC_DEFAULT_NWK_ID;
+    }
+
+    this->mac_pib.macCapReduction = DSME_CAP_REDUCTION;
+
     this->mac_pib.macAssociatedPANCoord = this->mac_pib.macIsPANCoord;
     this->mac_pib.macBeaconOrder = 6;
     this->mac_pib.macSuperframeOrder = 3;

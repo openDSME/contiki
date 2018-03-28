@@ -20,7 +20,8 @@ endif
 
 
 ifdef RATE
-CFLAGS += -DPERIOD=$(RATE)	#rate to send udp messages defined in milliseconds
+# rate to send udp messages defined in milliseconds
+CFLAGS += -DPERIOD=$(RATE)
 else
 CFLAGS += -DPERIOD=1500
 endif
@@ -29,4 +30,16 @@ CFLAGS += -DPAN_COORDINATOR=$(PAN_COORDINATOR)
 else
 $(error No PAN_COORDINATOR specified)
 endif
+
+ifdef DSME_CAP_REDUCTION
+CFLAGS += -DDSME_CAP_REDUCTION=$(DSME_CAP_REDUCTION)
+else
+ifdef DSME
+$(error No DSME_CAP_REDUCTION specified)
+else
+# irrelevant for CSMA, but build error otherwise
+CFLAGS += -DDSME_CAP_REDUCTION=0
+endif
+endif
+
 include $(CONTIKI)/core/net/mac/dsme/Makefile.dsme
