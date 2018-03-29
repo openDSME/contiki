@@ -7,7 +7,7 @@
 
 #include "openDSME/dsmeLayer/messages/MACCommand.h"
 #include "openDSME/dsmeLayer/DSMELayer.h"
-#include "openDSME/dsmeAdaptionLayer/scheduling/PIDScheduling.h"
+#include "openDSME/dsmeAdaptionLayer/scheduling/TPS.h"
 
 extern "C" {
 #include "sys/pt.h"
@@ -151,7 +151,9 @@ void DSMEPlatform::initialize() {
 
     channelList_t scanChannels;
     scanChannels.add(MAC_DEFAULT_CHANNEL);
-    scheduling = new PIDScheduling(this->dsmeAdaptionLayer);
+    TPS* tps = new TPS(this->dsmeAdaptionLayer);
+    tps->setAlpha(0.1);
+    scheduling = tps;
     this->dsmeAdaptionLayer.initialize(scanChannels,DSME_SCAN_DURATION,scheduling);
     this->initialized = true;
 }

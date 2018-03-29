@@ -148,7 +148,6 @@ public:
 		DSMELayer& getDSME() {
 				return dsme;
 		}
-		void bla();
 
     void requestPending();
 

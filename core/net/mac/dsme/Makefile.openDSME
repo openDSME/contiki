@@ -42,4 +42,4 @@ vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeAdaptionLayer
 CONTIKI_SOURCEFILES += AssociationHelper.cc DSMEAdaptionLayer.cc GTSHelper.cc ScanHelper.cc MessageHelper.cc
 
 vpath %.cc $(CONTIKI)/core/net/mac/dsme/openDSME/dsmeAdaptionLayer/scheduling
-CONTIKI_SOURCEFILES += PIDScheduling.cc
+CONTIKI_SOURCEFILES += PIDScheduling.cc TPS.cc
