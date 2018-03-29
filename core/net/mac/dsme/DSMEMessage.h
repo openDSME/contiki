@@ -139,7 +139,7 @@ public:
 				return payloadLength;
 		}
 
-    radio_value_t getRSSI() {
+    int8_t getRSSI() override {
     		return this->radio_last_rssi;
     }
 
