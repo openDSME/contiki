@@ -94,6 +94,7 @@ static volatile enum rf2xx_state rf2xx_state;
 static volatile int rf2xx_on;
 static volatile int cca_pending;
 static volatile uint8_t rf2xx_last_lqi;
+static volatile int8_t rf2xx_last_rssi;
 static volatile int rf2xx_current_channel;
 
 /* Are we currently in poll mode? */
@@ -553,6 +554,10 @@ get_value(radio_param_t param, radio_value_t *value)
     /* LQI of the last packet received */
     *value = rf2xx_last_lqi;
     return RADIO_RESULT_OK;
+  case RADIO_PARAM_LAST_RSSI:
+    /* RSSI of the last packet received */
+    *value = rf2xx_last_rssi;
+    return RADIO_RESULT_OK;
   default:
     return RADIO_RESULT_NOT_SUPPORTED;
   }
@@ -953,6 +958,10 @@ static int read(uint8_t *buf, uint8_t buf_len)
     // Read payload
     rf2xx_fifo_read_remaining(RF2XX_DEVICE, buf, len+3); // +3 to also request FCS and LQI
     rf2xx_last_lqi = buf[len+2];
+
+    // Read RSSI
+    uint8_t reg = rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__PHY_ED_LEVEL);
+    rf2xx_last_rssi = -90 + reg;
     platform_exit_critical();
 
     if(!poll_mode) {
@@ -960,6 +969,7 @@ static int read(uint8_t *buf, uint8_t buf_len)
          * In poll mode, the last link quality can be obtained through
          * RADIO_PARAM_LAST_LINK_QUALITY */
         packetbuf_set_attr(PACKETBUF_ATTR_LINK_QUALITY, rf2xx_last_lqi);
+        packetbuf_set_attr(PACKETBUF_ATTR_RSSI, rf2xx_last_rssi);
     }
 
 #ifdef RF2XX_LEDS_ON
