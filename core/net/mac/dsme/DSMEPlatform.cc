@@ -14,6 +14,7 @@ extern "C" {
 #include "limits.h"
 #include "net/packetbuf.h"
 #include "net/mac/frame802154.h"
+#include "net/link-stats.h"
 }
 
 #if !(CONTIKI_TARGET_COOJA || CONTIKI_TARGET_COOJA_IP64)
@@ -678,6 +679,19 @@ bool DSMEPlatform::sendNow() {
     DSME_ASSERT(dsme::DSMEPlatform::state == dsme::DSMEPlatform::STATE_SEND);
     process_poll(&sendDoneProcess);
     return tx_Success;
+}
+
+void DSMEPlatform::signalAckLayerResult(enum AckLayerResponse response, IEEE802154MacAddress receiver) {
+    linkaddr_t to;
+    convertDSMEMacAddressToLinkaddr(&receiver, &to);
+
+    if(response == AckLayerResponse::ACK_SUCCESSFUL) {
+        link_stats_packet_sent(&to,MAC_TX_OK,1);
+    }
+
+    if(response == AckLayerResponse::ACK_FAILED) {
+        link_stats_packet_sent(&to,MAC_TX_NOACK,1);
+    }
 }
 
 PROCESS_THREAD(sendDoneProcess, ev, data)
