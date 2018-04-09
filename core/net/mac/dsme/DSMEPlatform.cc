@@ -123,12 +123,12 @@ void DSMEPlatform::initialize() {
     this->mac_pib.macCapReduction = DSME_CAP_REDUCTION;
 
     this->mac_pib.macAssociatedPANCoord = this->mac_pib.macIsPANCoord;
-    this->mac_pib.macSuperframeOrder = 3;
-    this->mac_pib.macMultiSuperframeOrder = 5;
-    this->mac_pib.macBeaconOrder = 6;
+    this->mac_pib.macSuperframeOrder = 4;
+    this->mac_pib.macMultiSuperframeOrder = DSME_MO;
+    this->mac_pib.macBeaconOrder = 7;
 
-    this->mac_pib.macMinBE = 5;
-    this->mac_pib.macMaxBE = 7;
+    this->mac_pib.macMinBE = 7;
+    this->mac_pib.macMaxBE = 8;
     this->mac_pib.macMaxCSMABackoffs = 5;
     this->mac_pib.macMaxFrameRetries = 3;
 
@@ -682,16 +682,16 @@ bool DSMEPlatform::sendNow() {
     return tx_Success;
 }
 
-void DSMEPlatform::signalAckLayerResult(enum AckLayerResponse response, IEEE802154MacAddress receiver) {
+void DSMEPlatform::signalAckedTransmissionResult(bool success, uint8_t transmissionAttempts, IEEE802154MacAddress receiver) {
     linkaddr_t to;
     convertDSMEMacAddressToLinkaddr(&receiver, &to);
 
-    if(response == AckLayerResponse::ACK_SUCCESSFUL) {
-        link_stats_packet_sent(&to,MAC_TX_OK,1);
+    if(success) {
+        link_stats_packet_sent(&to,MAC_TX_OK,transmissionAttempts);
     }
 
-    if(response == AckLayerResponse::ACK_FAILED) {
-        link_stats_packet_sent(&to,MAC_TX_NOACK,1);
+    if(!success) {
+        link_stats_packet_sent(&to,MAC_TX_NOACK,transmissionAttempts);
     }
 }
 
@@ -802,12 +802,12 @@ void DSMEPlatform::requestPending() {
  * Translates an IEEE802154MacAddress into contiki linkaddr_t
  */
 void DSMEPlatform::convertDSMEMacAddressToLinkaddr(IEEE802154MacAddress *from, linkaddr_t *to) {
-		to->u8[0] = (uint8_t) (from->a1() >> 8);
-		to->u8[1] = (uint8_t) from->a1();
-		to->u8[2] = (uint8_t) (from->a2() >> 8);
-		to->u8[3] = (uint8_t) from->a2();
-		to->u8[4] = (uint8_t) (from->a3() >> 8);
-		to->u8[5] = (uint8_t) from->a3();
+		to->u8[0] = 2;
+		to->u8[1] = 0;
+		to->u8[2] = 0;
+		to->u8[3] = 0;
+		to->u8[4] = 0;
+		to->u8[5] = 0;
 		to->u8[6] = (uint8_t) (from->a4() >> 8);
 		to->u8[7] = (uint8_t) from->a4();
 }

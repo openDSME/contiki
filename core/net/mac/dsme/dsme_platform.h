@@ -43,6 +43,9 @@ extern "C" {
 //#define DSME_SIM_ASSERT(x) if(!(x)) { DSME_LOG("SIM ASSERT" << __FILE__ << ":" << __LINE__); }
 #define DSME_SIM_ASSERT(x) if(!(x)) { DSME_LOG("SIM ASSERT"); }
 
+#define POS(x) ((x) < 0?-(x):(x))
+#define FLOAT_OUTPUT(x) ((int16_t)x) << '.' << (uint16_t)POS((x-(int16_t)x)*10)
+
 #include "DSMEMessage.h"
 #include "dsme_settings.h"
 #include "dsme_atomic.h"

@@ -71,7 +71,13 @@
 #define RPL_MRHOF_CONF_SQUARED_ETX 1
 #define RPL_CONF_WITH_MC 1
 #define RPL_CONF_DAG_MC RPL_DAG_MC_ETX
-#define RPL_CONF_WITH_DAO_ACK 1
+
+/* DAO ACKs lead to repeated allocation and deallocation of slots. It is also not really useful for our application.
+ * Alternatively, we could also mark DAO ACKs as CAP traffic.
+ * The same holds for PROBING
+ */
+#define RPL_CONF_WITH_DAO_ACK 0
+#define RPL_CONF_WITH_PROBING 0
 
 #if CONTIKI_TARGET_COOJA
 #define COOJA_CONF_SIMULATE_TURNAROUND 0

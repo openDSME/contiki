@@ -155,7 +155,7 @@ public:
 
     mac_result_t getMCPSTtransmitStatus();
 
-    void signalAckLayerResult(enum AckLayerResponse response, IEEE802154MacAddress receiver) override;
+    void signalAckedTransmissionResult(bool success, uint8_t transmissionAttempts, IEEE802154MacAddress receiver) override;
 
     static DSMEPlatform* instance;
 

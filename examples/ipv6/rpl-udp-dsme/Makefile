@@ -42,4 +42,15 @@ CFLAGS += -DDSME_CAP_REDUCTION=0
 endif
 endif
 
+ifdef DSME_MO
+CFLAGS += -DDSME_MO=$(DSME_MO)
+else
+ifdef DSME
+$(error No DSME_MO specified)
+else
+# irrelevant for CSMA, but build error otherwise
+CFLAGS += -DDSME_MO=0
+endif
+endif
+
 include $(CONTIKI)/core/net/mac/dsme/Makefile.dsme

@@ -138,18 +138,21 @@ PROCESS_THREAD(main_process, ev, data)
 	UIP_HTONS(connection->lport), UIP_HTONS(connection->rport));
   }
 
-  if(!IS_SERVER) {
-    etimer_set(&periodic, SEND_INTERVAL);
-  }
+  etimer_set(&periodic, SEND_INTERVAL);
   while(1) {
     PROCESS_YIELD();
     if(ev == tcpip_event) {
       tcpip_handler();
     }
 
-    if(!IS_SERVER && etimer_expired(&periodic)) {
+    if(etimer_expired(&periodic)) {
       etimer_reset(&periodic);
-      ctimer_set(&backoff_timer, SEND_TIME, send_packet, NULL);
+      if(!IS_SERVER) {
+        ctimer_set(&backoff_timer, SEND_TIME, send_packet, NULL);
+      }
+      else {
+          PRINTF(".\n");
+      }
     }
   }
 
