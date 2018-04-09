@@ -201,6 +201,7 @@ private:
         currentlySending = false;
         firstTry = true;
         receivedViaMCPS = false;
+        retryCounter = 0;
 
         macHdr.reset();
     }
