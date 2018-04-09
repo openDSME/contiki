@@ -154,6 +154,7 @@ void DSMEPlatform::initialize() {
     scanChannels.add(MAC_DEFAULT_CHANNEL);
     TPS* tps = new TPS(this->dsmeAdaptionLayer);
     tps->setAlpha(0.1);
+    tps->setMinFreshness(this->mac_pib.macDSMEGTSExpirationTime);
     scheduling = tps;
     this->dsmeAdaptionLayer.initialize(scanChannels,DSME_SCAN_DURATION,scheduling);
     this->initialized = true;
