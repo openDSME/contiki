@@ -63,7 +63,7 @@ extern "C" {
 
 #define DSME_MAX_LOST_BEACONS 8
 
-#define STATISTICS_BEACONS
+//#define STATISTICS_BEACONS
 
 namespace dsme {
 
