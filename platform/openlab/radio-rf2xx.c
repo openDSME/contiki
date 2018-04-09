@@ -858,7 +858,12 @@ static void idle(void)
     rf2xx_slp_tr_clear(RF2XX_DEVICE);
 
     // Force IDLE
-    rf2xx_set_state(RF2XX_DEVICE, RF2XX_TRX_STATE__FORCE_PLL_ON);
+    if(rf2xx_on) {
+        rf2xx_set_state(RF2XX_DEVICE, RF2XX_TRX_STATE__FORCE_PLL_ON);
+    }
+    else {
+        rf2xx_set_state(RF2XX_DEVICE, RF2XX_TRX_STATE__FORCE_TRX_OFF);
+    }
 
     // If radio has external PA, disable DIG3/4
     if (rf2xx_has_pa(RF2XX_DEVICE))
@@ -903,6 +908,24 @@ static void listen(void)
     rf2xx_state = RF_LISTEN;
     rf2xx_set_state(RF2XX_DEVICE, RF2XX_TRX_STATE__RX_ON);
     platform_exit_critical();
+
+    // Wait until RX ON state
+    rtimer_clock_t time;
+    time = RTIMER_NOW() + RTIMER_SECOND / 1000;
+    do
+    {
+        platform_enter_critical();
+        reg = rf2xx_get_status(RF2XX_DEVICE);
+        platform_exit_critical();
+
+        // Check for block
+        if (RTIMER_CLOCK_LT(time, RTIMER_NOW()))
+        {
+            log_error("radio-rf2xx: Failed to enter listen");
+            restart();
+            return RADIO_TX_ERR;
+        }
+    } while (reg != RF2XX_TRX_STATUS__RX_ON);
 }
 
 /*---------------------------------------------------------------------------*/
