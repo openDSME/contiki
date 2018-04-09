@@ -158,3 +158,11 @@ PROCESS_THREAD(main_process, ev, data)
 
   PROCESS_END();
 }
+
+void
+rpl_callback_parent_switch_print(rpl_parent_t *old, rpl_parent_t *new)
+{
+  PRINTF("new parent ");
+  PRINT6ADDR(rpl_get_parent_ipaddr(new));
+  PRINTF("\n");
+}

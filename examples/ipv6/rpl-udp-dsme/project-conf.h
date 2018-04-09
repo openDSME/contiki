@@ -79,6 +79,8 @@
 #define RPL_CONF_WITH_DAO_ACK 0
 #define RPL_CONF_WITH_PROBING 0
 
+#define RPL_CALLBACK_PARENT_SWITCH rpl_callback_parent_switch_print
+
 #if CONTIKI_TARGET_COOJA
 #define COOJA_CONF_SIMULATE_TURNAROUND 0
 #endif /* CONTIKI_TARGET_COOJA */
