@@ -61,6 +61,8 @@ extern "C" {
 //#define LOG_ID_FROM_LINKADDR(addr) ((addr) ? (addr)->u8[LINKADDR_SIZE - 1] : 0)
 #define DSME_PACKET_MAX_LEN MIN(127,PACKETBUF_SIZE)
 
+#define DSME_MAX_LOST_BEACONS 8
+
 #define STATISTICS_BEACONS
 
 namespace dsme {
