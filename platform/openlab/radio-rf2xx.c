@@ -188,10 +188,6 @@ rf2xx_wr_hard_prepare(const void *payload, unsigned short payload_le, int async)
 	  reg |= RF2XX_TRX_CTRL_1_MASK__PA_EXT_EN;
 	  rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1, reg);
 	}
-
-	reg = rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1);
-	reg |= RF2XX_TRX_CTRL_1_MASK__IRQ_2_EXT_EN;
-	rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1, reg);
 	platform_exit_critical();
 
 	// Wait until PLL ON state
@@ -900,6 +896,11 @@ static void listen(void)
         reg |= RF2XX_TRX_CTRL_1_MASK__PA_EXT_EN;
         rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1, reg);
     }
+
+    // Enable RX Frame Time Stamping
+    reg = rf2xx_reg_read(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1);
+    reg |= RF2XX_TRX_CTRL_1_MASK__IRQ_2_EXT_EN;
+    rf2xx_reg_write(RF2XX_DEVICE, RF2XX_REG__TRX_CTRL_1, reg);
 
     // Enable IRQ interrupt
     rf2xx_irq_enable(RF2XX_DEVICE);

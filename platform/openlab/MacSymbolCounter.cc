@@ -148,13 +148,9 @@ void MacSymbolCounter::init(void (*compareMatch)()) {
 
     printf("DIER 0x%x\n",*timer_get_DIER(_timer));
 
-	//Enable Timer
-	//TIM3->CR1 |= TIM_CR1_CEN;
-	*timer_get_CR1(_timer) |= TIMER_CR1__CEN;
-}
-
-extern "C" {
-    void foo();
+    //Enable Timer
+    //TIM3->CR1 |= TIM_CR1_CEN;
+    *timer_get_CR1(_timer) |= TIMER_CR1__CEN;
 }
 
 void MacSymbolCounter::interrupt() {
@@ -205,8 +201,6 @@ void MacSymbolCounter::interrupt() {
         //uint16_t captureLSW = TIM3->CCR3;
         uint16_t captureLSW = *timer_get_CCRx(_timer,TIMER_CHANNEL_3);
         uint16_t captureMSW = msw;
-
-        foo();
 
         if(overflow && captureLSW >= 0x8000) {
             // The capture interrupt was probably
